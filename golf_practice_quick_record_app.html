@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ゴルフ練習記録</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; margin: 0; background: #f5f7f5; color: #222; }
+    header { background: #1f6f43; color: white; padding: 18px 16px; text-align: center; }
+    main { padding: 16px; max-width: 640px; margin: 0 auto; }
+    .card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    label { display: block; font-weight: 700; margin: 14px 0 6px; font-size: 15px; }
+    input, select, textarea { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; background: #fff; }
+    textarea { min-height: 76px; resize: vertical; }
+    button { width: 100%; border: none; border-radius: 12px; padding: 15px; font-size: 17px; font-weight: 700; margin-top: 12px; }
+    .primary { background: #1f6f43; color: white; }
+    .secondary { background: #e8efe9; color: #1f6f43; }
+    .danger { background: #f3e4e4; color: #9b1c1c; }
+    #output { white-space: pre-wrap; background: #f0f3f0; padding: 14px; border-radius: 10px; min-height: 120px; font-size: 15px; line-height: 1.6; }
+    .hint { font-size: 13px; color: #666; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ゴルフ練習記録</h1>
+    <div>5分で入力 → テキスト出力 → チャッピに貼る</div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="hint">入力はプルダウン中心です。マスタを変えたい場合は、このHTMLファイル内の「マスタ設定」を編集します。</div>
+
+      <label>日付</label><input type="date" id="date">
+      <label>練習場所</label><select id="place"></select>
+      <label>練習種別</label><select id="practiceType"></select>
+      <label>クラブ</label><select id="club"></select>
+      <label>球数</label><input type="number" id="balls" placeholder="例：10">
+      <label>テーマ</label><select id="theme"></select>
+      <label>P3角度</label><input type="text" id="p3" placeholder="例：60,59,61">
+      <label>P5角度</label><input type="text" id="p5" placeholder="例：56,55,54">
+      <label>主なミス</label><select id="miss"></select>
+      <label>成功した球数</label><input type="number" id="success" placeholder="例：8">
+      <label>失敗した球数</label><input type="number" id="failure" placeholder="例：2">
+      <label>良かった点</label><select id="good"></select>
+      <label>課題</label><select id="issue"></select>
+      <label>次回テーマ</label><select id="nextTheme"></select>
+      <label>メモ</label><textarea id="memo" placeholder="例：腹筋で始動するとP5が安定した"></textarea>
+
+      <button class="primary" onclick="generateOutput()">結果出力</button>
+      <button class="secondary" onclick="copyOutput()">出力結果をコピー</button>
+      <button class="danger" onclick="clearForm()">入力内容をリセット</button>
+    </div>
+
+    <div class="card">
+      <h2>出力結果</h2>
+      <div id="output">ここに結果が表示されます。</div>
+    </div>
+  </main>
+
+  <script>
+    const masters = {
+      place: ["インドア", "外レンジ", "アプローチ練習場", "パター練習場", "ラウンド", "自宅"],
+      practiceType: ["基礎練習", "スイング改善", "ショートゲーム", "ラウンド", "ラウンド前調整", "ラウンド後振り返り"],
+      club: ["Dr", "3W", "5W", "7W", "3UT", "4UT", "5UT", "5I", "6I", "7I", "8I", "9I", "PW", "48°", "50°", "52°", "54°", "56°", "58°", "60°", "PT"],
+      theme: ["シャロー化", "P3改善", "P5改善", "切り返し", "前傾維持", "体幹主導", "脱力", "テンポ", "出球管理", "左右ブレ改善", "30yd", "50yd", "70yd", "100yd", "パター"],
+      miss: ["なし", "ダフリ", "トップ", "シャンク", "プッシュ", "プル", "プッシュスライス", "フック", "スライス", "チーピン", "引っ掛け", "テンプラ", "芯を外した"],
+      good: ["芯に当たった", "P3改善", "P5改善", "出球が安定", "ミート率向上", "テンポが良い", "再現性が高い", "距離感が良い", "方向性が良い"],
+      issue: ["打ち急ぎ", "力み", "前傾が起きる", "腕で上げる", "体が開く", "手打ち", "右肩が突っ込む", "下半身が止まる", "体重移動不足"],
+      nextTheme: ["P3を65°以上", "P5を53°以下", "30%スイング", "70yd固定", "左ターゲット練習", "右ターゲット練習", "トップで待つ", "腹筋で始動", "脱力"]
+    };
+
+    function setToday() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      document.getElementById("date").value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    function fillSelect(id, values) {
+      const select = document.getElementById(id);
+      select.innerHTML = "";
+      values.forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+    }
+
+    function init() {
+      setToday();
+      fillSelect("place", masters.place);
+      fillSelect("practiceType", masters.practiceType);
+      fillSelect("club", masters.club);
+      fillSelect("theme", masters.theme);
+      fillSelect("miss", masters.miss);
+      fillSelect("good", masters.good);
+      fillSelect("issue", masters.issue);
+      fillSelect("nextTheme", masters.nextTheme);
+    }
+
+    function v(id) { return document.getElementById(id).value || ""; }
+
+    function generateOutput() {
+      const success = Number(v("success"));
+      const failure = Number(v("failure"));
+      const total = success + failure;
+      const successRate = total > 0 ? Math.round((success / total) * 100) + "%" : "";
+
+      const text =
+`【ゴルフ練習記録】
+日付：${v("date")}
+練習場所：${v("place")}
+練習種別：${v("practiceType")}
+クラブ：${v("club")}
+球数：${v("balls")}球
+テーマ：${v("theme")}
+P3角度：${v("p3")}
+P5角度：${v("p5")}
+主なミス：${v("miss")}
+成功した球数：${v("success")}
+失敗した球数：${v("failure")}
+成功率：${successRate}
+良かった点：${v("good")}
+課題：${v("issue")}
+次回テーマ：${v("nextTheme")}
+メモ：${v("memo")}`;
+
+      document.getElementById("output").textContent = text;
+    }
+
+    async function copyOutput() {
+      const text = document.getElementById("output").textContent;
+      if (!text || text === "ここに結果が表示されます。") {
+        alert("先に「結果出力」を押してください。");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("コピーしました。チャッピに貼り付けてください。");
+      } catch (e) {
+        alert("コピーできませんでした。出力結果を長押ししてコピーしてください。");
+      }
+    }
+
+    function clearForm() {
+      if (!confirm("入力内容をリセットしますか？")) return;
+      document.getElementById("balls").value = "";
+      document.getElementById("p3").value = "";
+      document.getElementById("p5").value = "";
+      document.getElementById("success").value = "";
+      document.getElementById("failure").value = "";
+      document.getElementById("memo").value = "";
+      document.getElementById("output").textContent = "ここに結果が表示されます。";
+      setToday();
+    }
+
+    init();
+  </script>
+</body>
+</html>
