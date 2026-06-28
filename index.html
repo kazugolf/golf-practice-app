@@ -1,162 +1,469 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ゴルフ練習記録</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; margin: 0; background: #f5f7f5; color: #222; }
-    header { background: #1f6f43; color: white; padding: 18px 16px; text-align: center; }
-    main { padding: 16px; max-width: 640px; margin: 0 auto; }
-    .card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    label { display: block; font-weight: 700; margin: 14px 0 6px; font-size: 15px; }
-    input, select, textarea { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; background: #fff; }
-    textarea { min-height: 76px; resize: vertical; }
-    button { width: 100%; border: none; border-radius: 12px; padding: 15px; font-size: 17px; font-weight: 700; margin-top: 12px; }
-    .primary { background: #1f6f43; color: white; }
-    .secondary { background: #e8efe9; color: #1f6f43; }
-    .danger { background: #f3e4e4; color: #9b1c1c; }
-    #output { white-space: pre-wrap; background: #f0f3f0; padding: 14px; border-radius: 10px; min-height: 120px; font-size: 15px; line-height: 1.6; }
-    .hint { font-size: 13px; color: #666; line-height: 1.5; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Practice</title>
+    <style>
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+        background: #f5f7f5;
+        color: #222;
+        padding-bottom: 92px
+    }
+
+    header {
+        background: #1f6f43;
+        color: #fff;
+        padding: 18px 16px;
+        text-align: center
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: 24px
+    }
+
+    header p {
+        margin: 6px 0 0;
+        font-size: 13px;
+        opacity: .9
+    }
+
+    main {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 16px
+    }
+
+    .screen {
+        display:none
+    }
+
+    .screen.active {
+        display: block
+    }
+
+    .card, details {
+        background: #fff;
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .07)
+    }
+
+    .home-title {
+        font-size: 28px;
+        font-weight: 800;
+        text-align: center;
+        margin: 18px 0 8px
+    }
+
+    .home-subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 22px;
+        font-size: 14px
+    }
+
+    .home-button {
+        width: 100%;
+        padding: 18px;
+        border-radius: 14px;
+        border: none;
+        font-size: 18px;
+        font-weight: 800;
+        margin: 10px 0
+    }
+
+    .primary {
+        background: #1f6f43;
+        color:white
+    }
+
+    .disabled {
+        background: #e9ece9;
+        color: #888
+    }
+
+    label {
+        display: block;
+        margin: 14px 0 6px;
+        font-weight: 700;
+        font-size: 15px
+    }
+
+    input, select, textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 13px;
+        border: 1px solid #d8ddd8;
+        border-radius: 12px;
+        font-size: 16px;
+        background: #fff
+    }
+
+    textarea {
+        min-height: 84px;
+        resize: vertical
+    }
+
+    summary {
+        font-weight: 800;
+        font-size: 16px;
+        cursor: pointer;
+        list-style: none
+    }
+
+    summary::-webkit-details-marker {
+        display: none
+    }
+
+    summary::after {
+        content: "▼";
+        float: right;
+        color: #1f6f43
+    }
+
+    details[open] summary::after {
+        content: "▲"
+    }
+
+    .angle-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin-top: 10px
+    }
+
+    .angle-grid input {
+        text-align: center;
+        padding: 10px 4px;
+        font-size: 15px
+    }
+
+    .small-note {
+        color: #666;
+        font-size: 12px;
+        line-height: 1.5;
+        margin-top: 8px
+    }
+
+    .footer-action {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 12px 16px 18px;
+        background: rgba(245, 247, 245, .96);
+        border-top: 1px solid #d8ddd8;
+        backdrop-filter: blur(10px)
+    }
+
+    .footer-inner {
+        max-width: 640px;
+        margin: 0 auto;
+        display: flex;
+        gap: 10px
+    }
+
+    .action-button {
+        width: 100%;
+        padding: 15px;
+        border-radius: 14px;
+        border: none;
+        font-size: 17px;
+        font-weight: 800;
+        background: #1f6f43;
+        color: #fff
+    }
+
+    .sub-button {
+        padding: 15px;
+        border-radius: 14px;
+        border: none;
+        font-size: 15px;
+        font-weight: 700;
+        background: #e8f3ec;
+        color: #1f6f43;
+        min-width: 92px
+    }
+
+    #output {
+        white-space: pre-wrap;
+        background: #f0f3f0;
+        padding: 14px;
+        border-radius: 12px;
+        min-height: 140px;
+        line-height: 1.6;
+        font-size: 14px
+    }
+
+    .toast {
+        display: none;
+        position: fixed;
+        left: 50%;
+        bottom: 96px;
+        transform: translateX(-50%);
+        background: #222;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-weight: 700;
+        z-index: 20
+    }
+
+    .toast.show {
+        display: block
+    }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>ゴルフ練習記録</h1>
-    <div>5分で入力 → テキスト出力 → チャッピに貼る</div>
-  </header>
+    <header>
+        <h1>⛳ Golf Practice</h1>
+        <p>毎朝3分で練習を記録する</p>
+    </header>
+    <main>
+        <section id="homeScreen" class="screen active">
+            <div class="card">
+                <div class="home-title">Golf Practice</div>
+                <div class="home-subtitle">入力 → 出力 → ChatGPTへ貼り付け</div>
+                <button class="home-button primary" onclick="showRecord()">⛳ 練習記録を開始</button>
+                <button class="home-button disabled" onclick="showToast('過去の記録は準備中です')">📖 過去の記録を見る（準備中）</button>
+            </div>
+        </section>
 
-  <main>
-    <div class="card">
-      <div class="hint">入力はプルダウン中心です。マスタを変えたい場合は、このHTMLファイル内の「マスタ設定」を編集します。</div>
+        <section id="recordScreen" class="screen">
+            <div class="card">
+                <label>日付</label>
+                <input type="date" id="date">
+                <label>練習場所</label>
+                <select id="place"></select>
+                <label>クラブ</label>
+                <select id="club"></select>
+                <label>目標距離（yd）</label>
+                <input type="number" id="targetDistance" inputmode="numeric" placeholder="例：50">
+                <label>球数</label>
+                <select id="balls"></select>
+                <label>テーマ</label>
+                <select id="theme"></select>
+            </div>
 
-      <label>日付</label><input type="date" id="date">
-      <label>練習場所</label><select id="place"></select>
-      <label>練習種別</label><select id="practiceType"></select>
-      <label>クラブ</label><select id="club"></select>
-      <label>球数</label><input type="number" id="balls" placeholder="例：10">
-      <label>テーマ</label><select id="theme"></select>
-      <label>P3角度</label><input type="text" id="p3" placeholder="例：60,59,61">
-      <label>P5角度</label><input type="text" id="p5" placeholder="例：56,55,54">
-      <label>主なミス</label><select id="miss"></select>
-      <label>成功した球数</label><input type="number" id="success" placeholder="例：8">
-      <label>失敗した球数</label><input type="number" id="failure" placeholder="例：2">
-      <label>良かった点</label><select id="good"></select>
-      <label>課題</label><select id="issue"></select>
-      <label>次回テーマ</label><select id="nextTheme"></select>
-      <label>メモ</label><textarea id="memo" placeholder="例：腹筋で始動するとP5が安定した"></textarea>
+            <details>
+                <summary>P3・P5角度</summary>
+                <label>P3角度</label>
+                <div class="angle-grid" id="p3Grid"></div>
+                <label>P5角度</label>
+                <div class="angle-grid" id="p5Grid"></div>
+                <div class="small-note">空欄は出力時に無視します。</div>
+            </details>
 
-      <button class="primary" onclick="generateOutput()">結果出力</button>
-      <button class="secondary" onclick="copyOutput()">出力結果をコピー</button>
-      <button class="danger" onclick="clearForm()">入力内容をリセット</button>
+            <details>
+                <summary>振り返り</summary>
+                <label>主なミス</label>
+                <select id="miss"></select>
+                <label>成功した球数</label>
+                <input type="number" id="success" inputmode="numeric" placeholder="例：8">
+                <label>失敗した球数</label>
+                <input type="number" id="failure" inputmode="numeric" placeholder="例：2">
+                <label>良かった点</label>
+                <select id="good"></select>
+                <label>課題</label>
+                <select id="issue"></select>
+                <label>次回テーマ</label>
+                <select id="nextTheme"></select>
+                <label>メモ</label>
+                <textarea id="memo" placeholder="例：腹筋で始動するとP5が安定した"></textarea>
+            </details>
+
+            <div class="card">
+                <label>出力結果</label>
+                <div id="output">ここに出力結果が表示されます。</div>
+            </div>
+        </section>
+    </main>
+
+    <div class="footer-action" id="footerAction" style="display:none;">
+        <div class="footer-inner">
+            <button class="sub-button" onclick="showHome()">戻る</button>
+            <button class="action-button" onclick="generateAndCopy()">📋 結果を出力</button>
+        </div>
     </div>
+    <div id="toast" class="toast"></div>
 
-    <div class="card">
-      <h2>出力結果</h2>
-      <div id="output">ここに結果が表示されます。</div>
-    </div>
-  </main>
-
-  <script>
+    <script>
     const masters = {
-      place: ["インドア", "外レンジ", "アプローチ練習場", "パター練習場", "ラウンド", "自宅"],
-      practiceType: ["基礎練習", "スイング改善", "ショートゲーム", "ラウンド", "ラウンド前調整", "ラウンド後振り返り"],
-      club: ["Dr", "3W", "5W", "7W", "3UT", "4UT", "5UT", "5I", "6I", "7I", "8I", "9I", "PW", "48°", "50°", "52°", "54°", "56°", "58°", "60°", "PT"],
-      theme: ["シャロー化", "P3改善", "P5改善", "切り返し", "前傾維持", "体幹主導", "脱力", "テンポ", "出球管理", "左右ブレ改善", "30yd", "50yd", "70yd", "100yd", "パター"],
-      miss: ["なし", "ダフリ", "トップ", "シャンク", "プッシュ", "プル", "プッシュスライス", "フック", "スライス", "チーピン", "引っ掛け", "テンプラ", "芯を外した"],
-      good: ["芯に当たった", "P3改善", "P5改善", "出球が安定", "ミート率向上", "テンポが良い", "再現性が高い", "距離感が良い", "方向性が良い"],
-      issue: ["打ち急ぎ", "力み", "前傾が起きる", "腕で上げる", "体が開く", "手打ち", "右肩が突っ込む", "下半身が止まる", "体重移動不足"],
-      nextTheme: ["P3を65°以上", "P5を53°以下", "30%スイング", "70yd固定", "左ターゲット練習", "右ターゲット練習", "トップで待つ", "腹筋で始動", "脱力"]
+        place: ["インドア", "外レンジ", "ラウンド", "自宅"],
+        club: ["Dr", "5W", "4UT", "5I", "6I", "7I", "8I", "9I", "PW", "48°", "52°", "58°", "PT"],
+        balls: ["5", "10", "15", "20", "その他"],
+        theme: ["脱力", "シャロー化", "P5改善", "再現性", "体幹意識"],
+        miss: ["なし", "ダフリ", "トップ", "シャンク", "右プッシュ", "左引っ掛け"],
+        good: ["芯に当たった", "P3改善", "P5改善", "方向性向上", "再現性向上", "イメージ通りの球筋"],
+        issue: ["打ち急ぎ", "力み", "前傾が起きる", "腕で上げる", "右肩が突っ込む", "体幹が使えない"]
     };
 
+    function showRecord() {
+        homeScreen.classList.remove("active");
+        recordScreen.classList.add("active");
+        footerAction.style.display = "block"
+    }
+    function showHome() {
+        recordScreen.classList.remove("active");
+        homeScreen.classList.add("active");
+        footerAction.style.display = "none"
+    }
+    function showToast(message) {
+        const t = document.getElementById("toast");
+        t.textContent = message;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 1800)
+    }
     function setToday() {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, "0");
-      const dd = String(today.getDate()).padStart(2, "0");
-      document.getElementById("date").value = `${yyyy}-${mm}-${dd}`;
+        const d = new Date();
+        date.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
     }
-
     function fillSelect(id, values) {
-      const select = document.getElementById(id);
-      select.innerHTML = "";
-      values.forEach(value => {
-        const option = document.createElement("option");
-        option.value = value;
-        option.textContent = value;
-        select.appendChild(option);
-      });
+        const s = document.getElementById(id);
+        s.innerHTML = "";
+        values.forEach(value => {
+            const o = document.createElement("option");
+            o.value = value;
+            o.textContent = value;
+            s.appendChild(o)
+        })
     }
-
-    function init() {
-      setToday();
-      fillSelect("place", masters.place);
-      fillSelect("practiceType", masters.practiceType);
-      fillSelect("club", masters.club);
-      fillSelect("theme", masters.theme);
-      fillSelect("miss", masters.miss);
-      fillSelect("good", masters.good);
-      fillSelect("issue", masters.issue);
-      fillSelect("nextTheme", masters.nextTheme);
+    function createAngleInputs(containerId, prefix) {
+        const c = document.getElementById(containerId);
+        c.innerHTML = "";
+        for (let i = 1; i <= 10; i++) {
+            const input = document.createElement("input");
+            input.type = "number";
+            input.inputMode = "numeric";
+            input.id = `${prefix}${i}`;
+            input.placeholder = String(i);
+            c.appendChild(input)
+        }
     }
-
-    function v(id) { return document.getElementById(id).value || ""; }
-
+    function v(id) {
+        return document.getElementById(id).value || ""
+    }
+    function angleValues(prefix) {
+        const a = [];
+        for (let i = 1; i <= 10; i++) {
+            const value = v(`${prefix}${i}`);
+            if (value !== "")
+                a.push(value)
+        }
+        return a.join(",")
+    }
     function generateOutput() {
-      const success = Number(v("success"));
-      const failure = Number(v("failure"));
-      const total = success + failure;
-      const successRate = total > 0 ? Math.round((success / total) * 100) + "%" : "";
+        const success = Number(v("success"));
+        const failure = Number(v("failure"));
+        const total = success + failure;
+        const rate = total > 0 ? Math.round(success / total * 100) + "%" : "";
+        const text = `====================
+Golf Practice Log
+====================
 
-      const text =
-`【ゴルフ練習記録】
-日付：${v("date")}
-練習場所：${v("place")}
-練習種別：${v("practiceType")}
-クラブ：${v("club")}
-球数：${v("balls")}球
-テーマ：${v("theme")}
-P3角度：${v("p3")}
-P5角度：${v("p5")}
-主なミス：${v("miss")}
-成功した球数：${v("success")}
-失敗した球数：${v("failure")}
-成功率：${successRate}
-良かった点：${v("good")}
-課題：${v("issue")}
-次回テーマ：${v("nextTheme")}
-メモ：${v("memo")}`;
+日付=${
 
-      document.getElementById("output").textContent = text;
+
+        v("date")}
+場所=${v("place")}
+クラブ=${v("club")}
+目標距離=${v("targetDistance")}yd
+球数=${v("balls")}
+テーマ=${v("theme")}
+
+P3=${
+        angleValues("p3_")}
+P5=${angleValues("p5_")}
+
+ミス=${
+        v("miss")}
+成功=${v("success")}
+失敗=${v("failure")}
+成功率=${rate}
+
+良かった点=${
+        v("good")}
+課題=${v("issue")}
+次回テーマ=${v("nextTheme")}
+メモ=${v("memo")}
+
+====================
+AIへの依頼
+====================
+前回までの記録も踏まえて、
+・改善点
+・次回練習
+・長期傾向
+を分析してください。`
+
+
+
+
+
+
+
+
+        ;
+        output.textContent = text;
+        saveLastInputs();
+        return text;
     }
-
-    async function copyOutput() {
-      const text = document.getElementById("output").textContent;
-      if (!text || text === "ここに結果が表示されます。") {
-        alert("先に「結果出力」を押してください。");
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(text);
-        alert("コピーしました。チャッピに貼り付けてください。");
-      } catch (e) {
-        alert("コピーできませんでした。出力結果を長押ししてコピーしてください。");
-      }
+    async function generateAndCopy() {
+        const text = generateOutput();
+        try {
+            await navigator.clipboard.writeText(text);
+            showToast("コピーしました")
+        } catch (e) {
+            showToast("出力しました。長押しでコピーしてください。")
+        }
     }
-
-    function clearForm() {
-      if (!confirm("入力内容をリセットしますか？")) return;
-      document.getElementById("balls").value = "";
-      document.getElementById("p3").value = "";
-      document.getElementById("p5").value = "";
-      document.getElementById("success").value = "";
-      document.getElementById("failure").value = "";
-      document.getElementById("memo").value = "";
-      document.getElementById("output").textContent = "ここに結果が表示されます。";
-      setToday();
+    function saveLastInputs() {
+        const data = {
+            place: v("place"),
+            club: v("club"),
+            targetDistance: v("targetDistance"),
+            balls: v("balls"),
+            theme: v("theme"),
+            miss: v("miss"),
+            good: v("good"),
+            issue: v("issue"),
+            nextTheme: v("nextTheme")
+        };
+        localStorage.setItem("golfPracticeLastInputs", JSON.stringify(data))
     }
-
+    function loadLastInputs() {
+        const raw = localStorage.getItem("golfPracticeLastInputs");
+        if (!raw)
+            return;
+        try {
+            const data = JSON.parse(raw);
+            Object.keys(data).forEach(id => {
+                const el = document.getElementById(id);
+                if (el && data[id] !== undefined)
+                    el.value = data[id]
+            })
+        } catch (e) {}
+    }
+    function init() {
+        setToday();
+        fillSelect("place", masters.place);
+        fillSelect("club", masters.club);
+        fillSelect("balls", masters.balls);
+        fillSelect("theme", masters.theme);
+        fillSelect("miss", masters.miss);
+        fillSelect("good", masters.good);
+        fillSelect("issue", masters.issue);
+        fillSelect("nextTheme", masters.theme);
+        createAngleInputs("p3Grid", "p3_");
+        createAngleInputs("p5Grid", "p5_");
+        loadLastInputs()
+    }
     init();
-  </script>
+    </script>
 </body>
 </html>
